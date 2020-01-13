@@ -19,18 +19,6 @@ function getService(service) {
   return readYaml(`/services/${service}`);
 }
 
-function getDefaultServices() {
-  const defaultServices = fs.readdirSync(`${basePath}default-services`);
-  return defaultServices
-    .filter(fileName => fileName.endsWith(".yml"))
-    .map(fileName => fileName.substring(0, fileName.length - 4))
-    .reduce((prev, curr) => {
-      // eslint-disable-next-line no-param-reassign
-      prev[curr] = readYaml(`default-services/${curr}`);
-      return prev;
-    }, {});
-}
-
 function writeComposeFile(composeConfig) {
   fs.writeFileSync(
     `${basePath}docker-compose.yml`,
@@ -42,7 +30,6 @@ module.exports = {
   getCurrent,
   getBase,
   getService,
-  getDefaultServices,
   writeComposeFile,
   basePath,
 };

@@ -1,11 +1,6 @@
 const { Command } = require("@oclif/command");
 const { updateDeployment } = require("../utils/compose-utils");
-const {
-  getCurrent,
-  getBase,
-  getDefaultServices,
-  writeComposeFile,
-} = require("../utils/compose-config");
+const { getCurrent, getBase, writeComposeFile } = require("../utils/compose-config");
 
 class Deactivate extends Command {
   static strict = false;
@@ -18,7 +13,7 @@ class Deactivate extends Command {
     requested.forEach(serviceName => {
       delete services[serviceName];
     });
-    writeComposeFile({ ...base, services: { ...getDefaultServices(), ...services } });
+    writeComposeFile({ ...base, services });
     updateDeployment();
   }
 }
