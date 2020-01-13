@@ -23,7 +23,7 @@ class Update extends Command {
       const artifactsDir = path.resolve(basePath, abridgeConfig.context, abridgeConfig.artifacts);
       fs.readdirSync(artifactsDir).forEach(file =>
         fs.copyFileSync(
-          path.resolve(artifactsDir + file),
+          path.resolve(artifactsDir, file),
           path.resolve(basePath, "./docker/artifacts", file)
         )
       );
