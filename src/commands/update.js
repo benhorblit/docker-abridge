@@ -17,7 +17,7 @@ class Update extends Command {
       const [buildCommand, ...buildArgs] = abridgeConfig.build;
       await execa(buildCommand, buildArgs, {
         stdio: "inherit",
-        cwd: abridgeConfig.context,
+        cwd: path.resolve(basePath, abridgeConfig.context),
       });
 
       const artifactsDir = path.resolve(basePath, abridgeConfig.context, abridgeConfig.artifacts);
