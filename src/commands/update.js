@@ -11,23 +11,25 @@ class Update extends Command {
   async run() {
     const requested = this.parse().argv;
 
-    requested.sort().forEach(async serviceName => {
-      const abridgeConfig = getService(serviceName)["docker-abridge"];
+    await Promise.all(
+      requested.sort().map(async serviceName => {
+        const abridgeConfig = getService(serviceName)["docker-abridge"];
 
-      const [buildCommand, ...buildArgs] = abridgeConfig.build;
-      await execa(buildCommand, buildArgs, {
-        stdio: "inherit",
-        cwd: path.resolve(basePath, abridgeConfig.context),
-      });
+        const [buildCommand, ...buildArgs] = abridgeConfig.build;
+        await execa(buildCommand, buildArgs, {
+          stdio: "inherit",
+          cwd: path.resolve(basePath, abridgeConfig.context),
+        });
 
-      const artifactsDir = path.resolve(basePath, abridgeConfig.context, abridgeConfig.artifacts);
-      fs.readdirSync(artifactsDir).forEach(file =>
-        fs.copyFileSync(
-          path.resolve(artifactsDir, file),
-          path.resolve(basePath, "./docker/artifacts", file)
-        )
-      );
-    });
+        const artifactsDir = path.resolve(basePath, abridgeConfig.context, abridgeConfig.artifacts);
+        fs.readdirSync(artifactsDir).forEach(file =>
+          fs.copyFileSync(
+            path.resolve(artifactsDir, file),
+            path.resolve(basePath, "./docker/artifacts", file)
+          )
+        );
+      })
+    );
 
     Build.run(requested);
   }
