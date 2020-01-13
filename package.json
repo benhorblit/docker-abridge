@@ -48,7 +48,7 @@
 			"@oclif/plugin-help"
 		]
 	},
-	"repository": "cli/docker-abridge",
+	"repository": "benhorblit/docker-abridge",
 	"scripts": {
 		"postpack": "rm -f oclif.manifest.json",
 		"posttest": "eslint .",
