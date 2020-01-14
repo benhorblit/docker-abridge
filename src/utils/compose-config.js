@@ -4,11 +4,18 @@ const fs = require("fs");
 const basePath = process.env.DOCKER_ABRIDGE_WD || process.cwd();
 
 function readYaml(file) {
-  return yaml.safeLoad(fs.readFileSync(`${basePath + file}.yml`));
+  return yaml.safeLoad(fs.readFileSync(`${basePath + file}.yml`)) || {};
 }
 
 function getCurrent() {
-  return readYaml("docker-compose");
+  try {
+    return readYaml("docker-compose");
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return {}; // If the file doesn't exist return 'empty'
+    }
+    throw error;
+  }
 }
 
 function getBase() {

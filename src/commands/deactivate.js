@@ -8,7 +8,7 @@ class Deactivate extends Command {
   async run() {
     const requested = this.parse().argv;
     const base = getBase();
-    let { services } = getCurrent() || {};
+    let { services } = getCurrent();
     if (!services) services = {};
     requested.forEach(serviceName => {
       delete services[serviceName];
