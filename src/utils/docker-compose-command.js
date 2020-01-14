@@ -1,16 +1,9 @@
 const { Command } = require("@oclif/command");
-const execa = require("execa");
-const { basePath } = require("../utils/compose-config");
-
-const dockerCompose = (...args) =>
-  execa("docker-compose", ...args, {
-    stdio: "inherit",
-    cwd: basePath,
-  });
+const { dockerComposeExec } = require("./compose-utils");
 
 class DockerComposeCommand extends Command {
   dockerCompose(...args) {
-    return dockerCompose([...args, ...this.parse().argv]);
+    return dockerComposeExec([...args, ...this.parse().argv]);
   }
 }
 
