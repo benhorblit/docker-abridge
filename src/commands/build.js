@@ -7,7 +7,7 @@ class Build extends DockerComposeCommand {
   async run() {
     activateServices(this.parse().argv);
     await this.dockerCompose("build");
-    updateDeployment();
+    await updateDeployment();
   }
 }
 

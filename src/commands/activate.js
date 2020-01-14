@@ -6,7 +6,7 @@ class Activate extends Command {
 
   async run() {
     activateServices(this.parse().argv);
-    updateDeployment();
+    await updateDeployment();
   }
 }
 

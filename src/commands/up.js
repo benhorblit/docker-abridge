@@ -5,7 +5,7 @@ class Up extends DockerComposeCommand {
   static strict = false;
 
   async run() {
-    updateDeployment(this.parse().argv);
+    await updateDeployment(this.parse().argv, true);
   }
 }
 

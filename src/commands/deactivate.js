@@ -14,7 +14,7 @@ class Deactivate extends Command {
       delete services[serviceName];
     });
     writeComposeFile({ ...base, services });
-    updateDeployment();
+    await updateDeployment();
   }
 }
 
