@@ -15,12 +15,12 @@ class Update extends Command {
 
     const tasks = new Listr(
       requested.map(serviceName => ({
-        title: serviceName,
-        task: () => {
+        title: `Updating ${serviceName}`,
+        task: (context, task) => {
           const abridgeConfig = getService(serviceName)["docker-abridge"];
           return new Listr([
             {
-              title: `Build ${serviceName}`,
+              title: "Executing build command",
               task: () => {
                 const [buildCommand, ...buildArgs] = abridgeConfig.build;
                 return execa(buildCommand, buildArgs, {
@@ -29,7 +29,7 @@ class Update extends Command {
               },
             },
             {
-              title: `Copy ${serviceName} artifacts`,
+              title: "Copying artifacts",
               task: () => {
                 return new Observable(observer => {
                   observer.next("Copying...");
@@ -45,6 +45,7 @@ class Update extends Command {
                     )
                   );
                   observer.complete();
+                  task.title = `${serviceName} updated`; // eslint-disable-line no-param-reassign
                 });
               },
             },
