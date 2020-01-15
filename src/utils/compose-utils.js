@@ -1,4 +1,5 @@
 const execa = require("execa");
+const chalk = require("chalk");
 const { getCurrent, getBase, getService, writeComposeFile } = require("./compose-config");
 const { basePath } = require("../utils/compose-config");
 
@@ -11,8 +12,10 @@ async function dockerComposeExec(args, stdio) {
 
 async function updateDeployment(args = [], forceUpdate) {
   if (forceUpdate || (await areAnyServicesRunning())) {
+    console.log(chalk.green("Updating deployment..."));
     return dockerComposeExec(["up", "--detach", "--remove-orphans", ...args]);
   }
+  console.log(chalk.gray("Skipping updating deployment since nothing is running."));
   return null;
 }
 

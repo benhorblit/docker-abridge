@@ -6,6 +6,7 @@
 	"extends": ["eslint:recommended", "airbnb-base", "oclif", "plugin:prettier/recommended"],
 	"rules": {
 		"prettier/prettier": ["error", { "trailingComma": "es5", "printWidth": 100 }],
+		"no-console": 0,
 		"class-methods-use-this": ["error", { "exceptMethods": ["run"] }]
 	}
 }
