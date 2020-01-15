@@ -1,7 +1,7 @@
 {
 	"name": "docker-abridge",
 	"description": "A tool for managing a docker-compose environment allowing easy enabling/disabling of services.",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"author": "Ben Horblit",
 	"bin": {
 		"docker-abridge": "./bin/run"
