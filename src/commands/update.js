@@ -17,7 +17,7 @@ class Update extends Command {
       requested.map(serviceName => ({
         title: `Update ${serviceName}`,
         task: (context, task) => {
-          const abridgeConfig = getServiceConfig(serviceName)["docker-abridge"];
+          const abridgeConfig = getServiceConfig(serviceName);
           return new Listr([
             {
               title: "Execute build command",

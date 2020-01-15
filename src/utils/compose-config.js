@@ -1,6 +1,8 @@
 const yaml = require("js-yaml");
 const fs = require("fs");
 
+const CONFIG_KEY = "docker_abridge";
+
 const basePath = process.env.DOCKER_ABRIDGE_WD || process.cwd();
 
 function readYaml(file) {
@@ -19,17 +21,25 @@ function getCurrent() {
 }
 
 function getBase() {
-  return readYaml("base");
+  const raw = readYaml("base");
+  delete raw[CONFIG_KEY];
+  return raw;
 }
 
 function getService(service) {
   const raw = readYaml(`/services/${service}`);
-  delete raw["docker-abridge"];
+  delete raw[CONFIG_KEY];
   return raw;
 }
 
+function getBaseConfig() {
+  return readYaml("base")[CONFIG_KEY];
+}
+
 function getServiceConfig(service) {
-  return readYaml(`/services/${service}`)["docker-abridge"];
+  const baseConfig = getBaseConfig();
+  const serviceConfig = readYaml(`/services/${service}`)[CONFIG_KEY];
+  return { ...baseConfig.service_defaults, ...serviceConfig };
 }
 
 function writeComposeFile(composeConfig) {
