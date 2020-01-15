@@ -23,9 +23,7 @@ function activateServices(requested) {
   const base = getBase();
   const services = { ...getCurrent().services, ...base.services };
   requested.sort().forEach(serviceName => {
-    const serviceConfig = getService(serviceName);
-    delete serviceConfig["docker-abridge"];
-    services[serviceName] = serviceConfig;
+    services[serviceName] = getService(serviceName);
   });
   base.services = services;
   writeComposeFile(base);

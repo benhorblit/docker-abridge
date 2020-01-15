@@ -23,7 +23,13 @@ function getBase() {
 }
 
 function getService(service) {
-  return readYaml(`/services/${service}`);
+  const raw = readYaml(`/services/${service}`);
+  delete raw["docker-abridge"];
+  return raw;
+}
+
+function getServiceConfig(service) {
+  return readYaml(`/services/${service}`)["docker-abridge"];
 }
 
 function writeComposeFile(composeConfig) {
@@ -37,6 +43,7 @@ module.exports = {
   getCurrent,
   getBase,
   getService,
+  getServiceConfig,
   writeComposeFile,
   basePath,
 };

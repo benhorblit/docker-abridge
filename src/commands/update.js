@@ -4,7 +4,7 @@ const { resolve } = require("path");
 const execao = require("execa-output");
 const Listr = require("listr");
 const { Observable } = require("rxjs");
-const { getService, basePath } = require("../utils/compose-config");
+const { getServiceConfig, basePath } = require("../utils/compose-config");
 const { activateServices, updateDeployment } = require("../utils/compose-utils");
 
 class Update extends Command {
@@ -17,7 +17,7 @@ class Update extends Command {
       requested.map(serviceName => ({
         title: `Update ${serviceName}`,
         task: (context, task) => {
-          const abridgeConfig = getService(serviceName)["docker-abridge"];
+          const abridgeConfig = getServiceConfig(serviceName)["docker-abridge"];
           return new Listr([
             {
               title: "Execute build command",
