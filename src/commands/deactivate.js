@@ -5,6 +5,13 @@ const { getCurrent, getBase, writeComposeFile } = require("../utils/compose-conf
 class Deactivate extends Command {
   static strict = false;
 
+  static description = `Removes services from the deployment.
+If the deployment is running it will be updated after the docker-compose.yml is updated.`;
+
+  static args = [
+    { name: "services...", description: "The namees of services to remove from the deployment" },
+  ];
+
   async run() {
     const requested = this.parse().argv;
     const base = getBase();

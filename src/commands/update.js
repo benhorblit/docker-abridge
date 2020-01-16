@@ -10,6 +10,20 @@ const { activateServices, updateDeployment } = require("../utils/compose-utils")
 class Update extends Command {
   static strict = false;
 
+  static description = `Updates the service images with the latest builds.
+Based on the configuration in the service yamls (and the defaults in the
+base yaml) docker-abridge will attempt to execute the given build command
+in the provided context. It will then copy the artifacts from the
+specified location into the docker/artifacts/ directory within the project.
+Once the build artifacts have been copied the image will be rebuilt and the
+deployment will be updated.
+
+By passing multiple service names you can update multiple services at once.
+By default 2 service images will be updated at a time. The deployment will
+be updated, if it is running, once all images have been built.`;
+
+  static args = [{ name: "services...", description: "The names services to update" }];
+
   async run() {
     const requested = this.parse().argv;
 
