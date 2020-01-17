@@ -8,7 +8,7 @@ class Direct extends DockerComposeCommand {
   static examples = ["$ docker-abridge top", "$ docker-abridge exec psql -d database -U  user -W"];
 
   async run() {
-    await this.dockerCompose([]);
+    await this.dockerCompose();
   }
 }
 
