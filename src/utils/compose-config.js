@@ -41,7 +41,7 @@ function getBaseConfig() {
 
 function getServiceConfig(service) {
   const baseConfig = getBaseConfig();
-  const serviceConfig = readYaml(`/services/${service}`)[CONFIG_KEY];
+  const serviceConfig = readYaml(`services/${service}`)[CONFIG_KEY];
   return { ...baseConfig.service_defaults, ...serviceConfig };
 }
 
