@@ -18,7 +18,7 @@ $ npm install -g docker-abridge
 $ docker-abridge COMMAND
 running command...
 $ docker-abridge (-v|--version|version)
-docker-abridge/0.2.8 darwin-x64 node-v12.14.1
+docker-abridge/0.2.9 darwin-x64 node-v12.14.1
 $ docker-abridge --help [COMMAND]
 USAGE
   $ docker-abridge COMMAND
