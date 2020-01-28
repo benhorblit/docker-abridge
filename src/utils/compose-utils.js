@@ -1,7 +1,12 @@
 const execa = require("execa");
 const chalk = require("chalk");
-const { getCurrent, getBase, getService, writeComposeFile } = require("./compose-config");
-const { pathFromBase } = require("../utils/compose-config");
+const {
+  pathFromBase,
+  getCurrent,
+  getBase,
+  getService,
+  writeComposeFile,
+} = require("./compose-config");
 
 async function dockerComposeExec(args, stdio) {
   return execa("docker-compose", args, {
@@ -13,6 +18,12 @@ async function dockerComposeExec(args, stdio) {
 async function updateDeployment(args = [], forceUpdate) {
   if (forceUpdate || (await areAnyServicesRunning())) {
     console.log(chalk.green("Updating deployment..."));
+
+    // TODO This is kinda gross
+    if (Object.entries(getCurrent()).length === 0) {
+      writeComposeFile(getBase());
+    }
+
     return dockerComposeExec(["up", "--detach", "--remove-orphans", ...args]);
   }
   console.log(chalk.gray("Skipping updating deployment since nothing is running."));
