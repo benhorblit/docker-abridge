@@ -30,7 +30,7 @@ function getBase() {
 }
 
 function getService(service) {
-  const raw = readYaml(`/services/${service}`);
+  const raw = readYaml(`services/${service}`);
   delete raw[CONFIG_KEY];
   return raw;
 }
