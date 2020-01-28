@@ -1,12 +1,15 @@
 const yaml = require("js-yaml");
 const fs = require("fs");
+const { resolve } = require("path");
 
 const CONFIG_KEY = "docker_abridge";
 
-const basePath = process.env.DOCKER_ABRIDGE_WD || process.cwd();
+const workingDirectory = process.env.DOCKER_ABRIDGE_WD || process.cwd();
+
+const pathFromBase = (...args) => resolve(workingDirectory, ...args);
 
 function readYaml(file) {
-  return yaml.safeLoad(fs.readFileSync(`${basePath + file}.yml`)) || {};
+  return yaml.safeLoad(fs.readFileSync(pathFromBase(`${file}.yml`))) || {};
 }
 
 function getCurrent() {
@@ -44,7 +47,7 @@ function getServiceConfig(service) {
 
 function writeComposeFile(composeConfig) {
   fs.writeFileSync(
-    `${basePath}docker-compose.yml`,
+    pathFromBase("docker-compose.yml"),
     `# This is a genereated file\n${yaml.safeDump(composeConfig)}`
   );
 }
@@ -55,5 +58,5 @@ module.exports = {
   getService,
   getServiceConfig,
   writeComposeFile,
-  basePath,
+  pathFromBase,
 };

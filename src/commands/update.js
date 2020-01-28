@@ -4,7 +4,7 @@ const { resolve } = require("path");
 const execao = require("execa-output");
 const Listr = require("listr");
 const { Observable } = require("rxjs");
-const { getServiceConfig, basePath } = require("../utils/compose-config");
+const { getServiceConfig, pathFromBase } = require("../utils/compose-config");
 const { activateServices, updateDeployment } = require("../utils/compose-utils");
 
 class Update extends Command {
@@ -38,7 +38,7 @@ be updated, if it is running, once all images have been built.`;
               task: () => {
                 const [buildCommand, ...buildArgs] = abridgeConfig.build;
                 return execao(buildCommand, buildArgs, {
-                  cwd: resolve(basePath, abridgeConfig.context),
+                  cwd: pathFromBase(abridgeConfig.context),
                 });
               },
             },
@@ -47,16 +47,12 @@ be updated, if it is running, once all images have been built.`;
               task: () => {
                 return new Observable(observer => {
                   observer.next("Copying...");
-                  const artifactsDir = resolve(
-                    basePath,
-                    abridgeConfig.context,
-                    abridgeConfig.artifacts
-                  );
+                  const artifactsDir = pathFromBase(abridgeConfig.context, abridgeConfig.artifacts);
                   fs.readdirSync(artifactsDir).forEach(file => {
                     observer.next(`Copying ${file}`);
                     fs.copyFileSync(
                       resolve(artifactsDir, file),
-                      resolve(basePath, "./docker/artifacts", file)
+                      pathFromBase("./docker/artifacts", file)
                     );
                   });
                   observer.complete();
@@ -68,7 +64,7 @@ be updated, if it is running, once all images have been built.`;
               task: () => {
                 activateServices([serviceName]);
                 const buildObservable = execao("docker-compose", ["build", serviceName], {
-                  cwd: basePath,
+                  cwd: pathFromBase(),
                 });
                 buildObservable.subscribe({
                   complete: () => {

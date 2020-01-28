@@ -1,12 +1,12 @@
 const execa = require("execa");
 const chalk = require("chalk");
 const { getCurrent, getBase, getService, writeComposeFile } = require("./compose-config");
-const { basePath } = require("../utils/compose-config");
+const { pathFromBase } = require("../utils/compose-config");
 
 async function dockerComposeExec(args, stdio) {
   return execa("docker-compose", args, {
     stdio: stdio || "inherit",
-    cwd: basePath,
+    cwd: pathFromBase(),
   });
 }
 
