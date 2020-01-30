@@ -32,7 +32,7 @@ function getBase() {
 function getService(service) {
   const raw = readYaml(`services/${service}`);
   delete raw[CONFIG_KEY];
-  return raw;
+  return (raw.services && Object.values(raw.services)[0]) || raw;
 }
 
 function getBaseConfig() {
