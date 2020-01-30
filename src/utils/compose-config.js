@@ -2,7 +2,7 @@ const yaml = require("js-yaml");
 const fs = require("fs");
 const { resolve } = require("path");
 
-const CONFIG_KEY = "docker_abridge";
+const CONFIG_KEY = "x-docker_abridge";
 
 const workingDirectory = process.env.DOCKER_ABRIDGE_WD || process.cwd();
 
