@@ -1,10 +1,11 @@
+/* eslint-disable camelcase */
 const yaml = require("js-yaml");
 const fs = require("fs");
 const { resolve } = require("path");
 
 const CONFIG_KEY = "x-docker_abridge";
 
-const workingDirectory = process.env.DOCKER_ABRIDGE_WD || process.cwd();
+const workingDirectory = process.env.ABRIDGE_WORKING_DIR || process.cwd();
 
 const pathFromBase = (...args) => resolve(workingDirectory, ...args);
 
@@ -43,10 +44,27 @@ function getServiceConfig(service) {
   const defaultConfig = getBaseConfig().service_defaults || {};
   const serviceConfig = readYaml(`services/${service}`)[CONFIG_KEY];
   return {
-    ...defaultConfig,
+    ...setEnvironmentDefaultOverrides(defaultConfig),
     ...serviceConfig,
     context: pathFromBase(defaultConfig.base_context || "", serviceConfig.context || ""),
   };
+}
+
+function setEnvironmentDefaultOverrides(defaultConfig) {
+  const variableMappings = {
+    base_context: "BASE_CONTEXT",
+    context: "CONTEXT",
+    // build: "BUILD", // TODO Need to support an array
+    artifacts: "ARTIFACTS",
+  };
+  Object.entries(variableMappings).forEach(([property, envVariable]) => {
+    const envValue = process.env[`ABRIDGE_${envVariable}`];
+    if (envValue) {
+      // eslint-disable-next-line no-param-reassign
+      defaultConfig[property] = envValue;
+    }
+  });
+  return defaultConfig;
 }
 
 function writeComposeFile(composeConfig) {
