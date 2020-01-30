@@ -4,10 +4,10 @@ class Logs extends DockerComposeCommand {
   static strict = false;
 
   static description = `Passthrough to 'docker-compose logs'.
-  Default flags: --follow --tail=30`;
+  Default flags: --follow`;
 
   async run() {
-    await this.dockerCompose("logs", "--follow", "--tail=30");
+    await this.dockerCompose("logs", "--follow");
   }
 }
 
