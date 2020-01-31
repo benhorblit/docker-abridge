@@ -1,5 +1,6 @@
 const { Command } = require("@oclif/command");
 const fs = require("fs");
+const chalk = require("chalk");
 const { resolve } = require("path");
 const execao = require("execa-output");
 const Listr = require("listr");
@@ -29,56 +30,72 @@ be updated, if it is running, once all images have been built.`;
 
     const tasks = new Listr(
       requested.map(serviceName => ({
-        title: `Update ${serviceName}`,
+        title: `Update ${chalk.bold.blue(serviceName)}`,
         task: (context, task) => {
           const abridgeConfig = getServiceConfig(serviceName);
-          return new Listr([
-            {
-              title: "Execute build command",
-              task: () => {
-                const [buildCommand, ...buildArgs] = abridgeConfig.build;
-                return execao(buildCommand, buildArgs, {
-                  cwd: pathFromBase(abridgeConfig.context),
-                });
-              },
-            },
-            {
-              title: "Copy artifacts",
-              task: () => {
-                return new Observable(observer => {
-                  observer.next("Copying...");
-                  const artifactsDir = pathFromBase(abridgeConfig.context, abridgeConfig.artifacts);
-                  fs.readdirSync(artifactsDir).forEach(file => {
-                    observer.next(`Copying ${file}`);
-                    fs.copyFileSync(
-                      resolve(artifactsDir, file),
-                      pathFromBase("./docker/artifacts", file)
-                    );
+          return new Listr(
+            [
+              {
+                title: "Execute build command",
+                task: () => {
+                  const [buildCommand, ...buildArgs] = abridgeConfig.build;
+                  const buildObservable = execao(buildCommand, buildArgs, {
+                    cwd: pathFromBase(abridgeConfig.context),
                   });
-                  observer.complete();
-                });
+                  buildObservable.subscribe({
+                    next: () => {
+                      // eslint-disable-next-line no-param-reassign
+                      task.title = `Updating ${chalk.bold.yellow(serviceName)}`;
+                    },
+                  });
+                  return buildObservable;
+                },
               },
-            },
-            {
-              title: "Build image",
-              task: () => {
-                activateServices([serviceName]);
-                const buildObservable = execao("docker-compose", ["build", serviceName], {
-                  cwd: pathFromBase(),
-                });
-                buildObservable.subscribe({
-                  complete: () => {
-                    // eslint-disable-next-line no-param-reassign
-                    task.title = `Ready to deploy ${serviceName}`;
-                  },
-                });
-                return buildObservable;
+              {
+                title: "Copy artifacts",
+                task: () => {
+                  return new Observable(observer => {
+                    observer.next("Copying...");
+                    const artifactsDir = pathFromBase(
+                      abridgeConfig.context,
+                      abridgeConfig.artifacts
+                    );
+                    fs.readdirSync(artifactsDir).forEach(file => {
+                      observer.next(`Copying ${file}`);
+                      fs.copyFileSync(
+                        resolve(artifactsDir, file),
+                        pathFromBase("./docker/artifacts", file)
+                      );
+                    });
+                    observer.complete();
+                  });
+                },
               },
-            },
-          ]);
+              {
+                title: "Build image",
+                task: () => {
+                  activateServices([serviceName]);
+                  const imageBuildObservable = execao("docker-compose", ["build", serviceName], {
+                    cwd: pathFromBase(),
+                  });
+                  imageBuildObservable.subscribe({
+                    complete: () => {
+                      // eslint-disable-next-line no-param-reassign
+                      task.title = `Ready to deploy ${chalk.bold.green(serviceName)}`;
+                    },
+                  });
+                  return imageBuildObservable;
+                },
+              },
+            ],
+            { exitOnError: true }
+          );
         },
       })),
-      { concurrent: 2 }
+      {
+        concurrent: 2,
+        exitOnError: false,
+      }
     );
 
     await tasks.run().catch(console.error);
