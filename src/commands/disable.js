@@ -2,7 +2,7 @@ const { Command } = require("@oclif/command");
 const { updateDeployment } = require("../utils/compose-utils");
 const { getCurrent, getBase, writeComposeFile } = require("../utils/compose-config");
 
-class Deactivate extends Command {
+class Disable extends Command {
   static strict = false;
 
   static description = `Removes services from the deployment.
@@ -25,4 +25,4 @@ If the deployment is running it will be updated after the docker-compose.yml is 
   }
 }
 
-module.exports = Deactivate;
+module.exports = Disable;

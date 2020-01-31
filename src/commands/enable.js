@@ -1,7 +1,7 @@
 const { Command } = require("@oclif/command");
 const { activateServices, updateDeployment } = require("../utils/compose-utils");
 
-class Activate extends Command {
+class Enable extends Command {
   static strict = false;
 
   static description = `Adds services to the deployment.
@@ -17,4 +17,4 @@ If the deployment is running it will be updated after the docker-compose.yml is 
   }
 }
 
-module.exports = Activate;
+module.exports = Enable;
