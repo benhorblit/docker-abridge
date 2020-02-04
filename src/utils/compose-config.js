@@ -13,6 +13,10 @@ function readYaml(file) {
   return yaml.safeLoad(fs.readFileSync(pathFromBase(`${file}.yml`))) || {};
 }
 
+function readRawYaml(path) {
+  return fs.readFileSync(pathFromBase(`${path}.yml`), "utf-8");
+}
+
 function getCurrent() {
   try {
     return readYaml("docker-compose");
@@ -80,6 +84,7 @@ function writeComposeFile(composeConfig) {
 }
 
 module.exports = {
+  readRawYaml,
   getCurrent,
   getBase,
   getService,
