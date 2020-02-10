@@ -1,10 +1,12 @@
-const { Command } = require("@oclif/command");
+/* eslint-disable global-require */
+const { Command, flags } = require("@oclif/command");
 const fs = require("fs");
 const chalk = require("chalk");
 const { resolve } = require("path");
 const execao = require("execa-output");
 const Listr = require("listr");
 const { Observable } = require("rxjs");
+const { first, last } = require("rxjs/operators");
 const { getServiceConfig, pathFromBase } = require("../utils/compose-config");
 const { activateServices, updateDeployment } = require("../utils/compose-utils");
 
@@ -25,8 +27,15 @@ be updated, if it is running, once all images have been built.`;
 
   static args = [{ name: "services...", description: "The names services to update" }];
 
+  static flags = { verbose: flags.boolean({ char: "v" }) };
+
   async run() {
-    const requested = this.parse().argv;
+    const {
+      argv: requested,
+      flags: { verbose },
+    } = this.parse();
+
+    console.log(verbose);
 
     const tasks = new Listr(
       requested.map(serviceName => ({
@@ -42,11 +51,9 @@ be updated, if it is running, once all images have been built.`;
                   const buildObservable = execao(buildCommand, buildArgs, {
                     cwd: pathFromBase(abridgeConfig.context),
                   });
-                  buildObservable.subscribe({
-                    next: () => {
-                      // eslint-disable-next-line no-param-reassign
-                      task.title = `Updating ${chalk.bold.yellow(serviceName)}`;
-                    },
+                  buildObservable.pipe(first()).subscribe(() => {
+                    // eslint-disable-next-line no-param-reassign
+                    task.title = `Updating ${chalk.bold.yellow(serviceName)}`;
                   });
                   return buildObservable;
                 },
@@ -78,23 +85,25 @@ be updated, if it is running, once all images have been built.`;
                   const imageBuildObservable = execao("docker-compose", ["build", serviceName], {
                     cwd: pathFromBase(),
                   });
-                  imageBuildObservable.subscribe({
-                    complete: () => {
-                      // eslint-disable-next-line no-param-reassign
-                      task.title = `Ready to deploy ${chalk.bold.green(serviceName)}`;
-                    },
+                  imageBuildObservable.pipe(last()).subscribe(() => {
+                    // eslint-disable-next-line no-param-reassign
+                    task.title = `Ready to deploy ${chalk.bold.green(serviceName)}`;
                   });
                   return imageBuildObservable;
                 },
               },
             ],
-            { exitOnError: true }
+            {
+              exitOnError: true,
+              renderer: verbose ? require("listr-verbose-renderer") : undefined,
+            }
           );
         },
       })),
       {
-        concurrent: 2,
+        concurrent: verbose ? 1 : 2,
         exitOnError: false,
+        renderer: verbose ? require("listr-verbose-renderer") : undefined,
       }
     );
 

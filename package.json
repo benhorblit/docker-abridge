@@ -17,6 +17,7 @@
 		"execa-output": "^2.0.0",
 		"js-yaml": "^3.13.1",
 		"listr": "^0.14.3",
+		"listr-verbose-renderer": "^0.6.0",
 		"rxjs": "^6.5.4"
 	},
 	"devDependencies": {
