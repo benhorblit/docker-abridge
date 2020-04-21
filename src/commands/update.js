@@ -65,6 +65,7 @@ be updated, if it is running, once all images have been built.`;
                   {
                     title: "Pull image from remote",
                     task: () => {
+                      activateServices([serviceName]);
                       const pullObservable = execao("docker", [
                         "pull",
                         getServiceDefinition(serviceName).image,
