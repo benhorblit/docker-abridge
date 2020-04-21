@@ -40,6 +40,11 @@ function getBaseConfig() {
   return readYaml("base")[CONFIG_KEY] || {};
 }
 
+function getServiceDefinition(service) {
+  const serviceDefinition = readYaml(`services/${service}`);
+  return serviceDefinition[service] || serviceDefinition.services[service];
+}
+
 function getServiceConfig(service) {
   const defaultConfig = getBaseConfig().service_defaults || {};
   const serviceConfig = readYaml(`services/${service}`)[CONFIG_KEY];
@@ -78,6 +83,7 @@ module.exports = {
   getCurrent,
   getBase,
   getService,
+  getServiceDefinition,
   getServiceConfig,
   writeComposeFile,
   pathFromBase,

@@ -7,7 +7,7 @@ const execao = require("execa-output");
 const Listr = require("listr");
 const { Observable } = require("rxjs");
 const { first, last } = require("rxjs/operators");
-const { getServiceConfig, pathFromBase } = require("../utils/compose-config");
+const { getServiceDefinition, getServiceConfig, pathFromBase } = require("../utils/compose-config");
 const { activateServices, updateDeployment } = require("../utils/compose-utils");
 
 class Update extends Command {
@@ -22,84 +22,127 @@ Once the build artifacts have been copied the image will be rebuilt and the
 deployment will be updated.
 
 By passing multiple service names you can update multiple services at once.
-By default 2 service images will be updated at a time. The deployment will
+You can pass services with the --remote flag that will be updated simply by
+pulling the latest image from the remote repository.
+
+By default 2 service images will be updated at a time. The deployment will 
 be updated, if it is running, once all images have been built.`;
 
   static args = [{ name: "services...", description: "The names services to update" }];
 
-  static flags = { verbose: flags.boolean({ char: "v" }) };
+  static flags = {
+    verbose: flags.boolean({
+      char: "v",
+      description:
+        "Enable verbose output that shows everything printed during the build. Useful for debugging.",
+    }),
+    remote: flags.string({
+      char: "r",
+      multiple: true,
+      description:
+        "The names of services to update by simply pulling from the remote repository instead of executing a build.",
+    }),
+  };
 
   async run() {
     const {
-      argv: requested,
-      flags: { verbose },
+      argv: requested = [],
+      flags: { verbose, remote: remotes = [] },
     } = this.parse();
 
-    console.log(verbose);
-
     const tasks = new Listr(
-      requested.map(serviceName => ({
-        title: `Update ${chalk.bold.blue(serviceName)}`,
-        task: (context, task) => {
-          const abridgeConfig = getServiceConfig(serviceName);
-          return new Listr(
-            [
-              {
-                title: "Execute build command",
-                task: () => {
-                  const [buildCommand, ...buildArgs] = abridgeConfig.build;
-                  const buildObservable = execao(buildCommand, buildArgs, {
-                    cwd: pathFromBase(abridgeConfig.context),
-                  });
-                  buildObservable.pipe(first()).subscribe(() => {
-                    // eslint-disable-next-line no-param-reassign
-                    task.title = `Updating ${chalk.bold.yellow(serviceName)}`;
-                  });
-                  return buildObservable;
-                },
-              },
-              {
-                title: "Copy artifacts",
-                task: () => {
-                  return new Observable(observer => {
-                    observer.next("Copying...");
-                    const artifactsDir = pathFromBase(
-                      abridgeConfig.context,
-                      abridgeConfig.artifacts
-                    );
-                    fs.readdirSync(artifactsDir).forEach(file => {
-                      observer.next(`Copying ${file}`);
-                      fs.copyFileSync(
-                        resolve(artifactsDir, file),
-                        pathFromBase("./docker/artifacts", file)
-                      );
-                    });
-                    observer.complete();
-                  });
-                },
-              },
-              {
-                title: "Build image",
-                task: () => {
-                  activateServices([serviceName]);
-                  const imageBuildObservable = execao("docker-compose", ["build", serviceName], {
-                    cwd: pathFromBase(),
-                  });
-                  imageBuildObservable.pipe(last()).subscribe(() => {
-                    // eslint-disable-next-line no-param-reassign
-                    task.title = `Ready to deploy ${chalk.bold.green(serviceName)}`;
-                  });
-                  return imageBuildObservable;
-                },
-              },
-            ],
-            {
-              exitOnError: true,
-              renderer: verbose ? require("listr-verbose-renderer") : undefined,
-            }
-          );
-        },
-      })),
+      Array.prototype
+        .concat(
+          requested.map(serviceName => ({ serviceName, remote: false })),
+          remotes.map(serviceName => ({ serviceName, remote: true }))
+        )
+        .map(({ serviceName, remote }) => ({
+          title: `Update ${chalk.bold.blue(serviceName)}`,
+          task: (context, task) => {
+            const abridgeConfig = getServiceConfig(serviceName);
+            return remote
+              ? new Listr([
+                  {
+                    title: "Pull image from remote",
+                    task: () => {
+                      const pullObservable = execao("docker", [
+                        "pull",
+                        getServiceDefinition(serviceName).image,
+                      ]);
+                      pullObservable.pipe(first()).subscribe(() => {
+                        // eslint-disable-next-line no-param-reassign
+                        task.title = `Updating ${chalk.bold.yellow(serviceName)}`;
+                      });
+                      pullObservable.pipe(last()).subscribe(() => {
+                        // eslint-disable-next-line no-param-reassign
+                        task.title = `Ready to deploy ${chalk.bold.green(serviceName)}`;
+                      });
+                      return pullObservable;
+                    },
+                  },
+                ])
+              : new Listr(
+                  [
+                    {
+                      title: "Execute build command",
+                      task: () => {
+                        const [buildCommand, ...buildArgs] = abridgeConfig.build;
+                        const buildObservable = execao(buildCommand, buildArgs, {
+                          cwd: pathFromBase(abridgeConfig.context),
+                        });
+                        buildObservable.pipe(first()).subscribe(() => {
+                          // eslint-disable-next-line no-param-reassign
+                          task.title = `Updating ${chalk.bold.yellow(serviceName)}`;
+                        });
+                        return buildObservable;
+                      },
+                    },
+                    {
+                      title: "Copy artifacts",
+                      task: () => {
+                        return new Observable(observer => {
+                          observer.next("Copying...");
+                          const artifactsDir = pathFromBase(
+                            abridgeConfig.context,
+                            abridgeConfig.artifacts
+                          );
+                          fs.readdirSync(artifactsDir).forEach(file => {
+                            observer.next(`Copying ${file}`);
+                            fs.copyFileSync(
+                              resolve(artifactsDir, file),
+                              pathFromBase("./docker/artifacts", file)
+                            );
+                          });
+                          observer.complete();
+                        });
+                      },
+                    },
+                    {
+                      title: "Build image",
+                      task: () => {
+                        activateServices([serviceName]);
+                        const imageBuildObservable = execao(
+                          "docker-compose",
+                          ["build", serviceName],
+                          {
+                            cwd: pathFromBase(),
+                          }
+                        );
+                        imageBuildObservable.pipe(last()).subscribe(() => {
+                          // eslint-disable-next-line no-param-reassign
+                          task.title = `Ready to deploy ${chalk.bold.green(serviceName)}`;
+                        });
+                        return imageBuildObservable;
+                      },
+                    },
+                  ],
+                  {
+                    exitOnError: true,
+                    renderer: verbose ? require("listr-verbose-renderer") : undefined,
+                  }
+                );
+          },
+        })),
       {
         concurrent: verbose ? 1 : 2,
         exitOnError: false,
