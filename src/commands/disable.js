@@ -8,7 +8,7 @@ class Disable extends Command {
 If the deployment is running it will be updated after the docker-compose.yml is updated.`;
 
   static args = [
-    { name: "services...", description: "The namees of services to remove from the deployment" },
+    { name: "services...", description: "The names of services to remove from the deployment" },
   ];
 
   async run() {

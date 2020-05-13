@@ -12,7 +12,6 @@ is running.`;
   async run() {
     activateServices(this.parse().argv);
     await this.dockerCompose("build");
-    console.log();
     await updateDeployment();
   }
 }
