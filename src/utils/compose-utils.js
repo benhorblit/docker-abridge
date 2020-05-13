@@ -15,7 +15,7 @@ async function dockerComposeExec(args, stdio) {
   });
 }
 
-function modifyServices({ enable = [], disable = [] }) {
+function modifyServices({ enable = [], disable = [] } = {}) {
   const currentServices = getCurrent().services || [];
   disable.forEach(serviceToDisable => {
     delete currentServices[serviceToDisable];
