@@ -1,6 +1,5 @@
 const { Command } = require("@oclif/command");
-const { updateDeployment } = require("../utils/compose-utils");
-const { getCurrent, getBase, writeComposeFile } = require("../utils/compose-config");
+const { modifyServices, updateDeployment } = require("../utils/compose-utils");
 
 class Disable extends Command {
   static strict = false;
@@ -13,14 +12,7 @@ If the deployment is running it will be updated after the docker-compose.yml is 
   ];
 
   async run() {
-    const requested = this.parse().argv;
-    const base = getBase();
-    let { services } = getCurrent();
-    if (!services) services = {};
-    requested.forEach(serviceName => {
-      delete services[serviceName];
-    });
-    writeComposeFile({ ...base, services });
+    modifyServices({ disable: this.parse().argv });
     await updateDeployment();
   }
 }

@@ -1,5 +1,5 @@
 const { Command } = require("@oclif/command");
-const { activateServices, updateDeployment } = require("../utils/compose-utils");
+const { modifyServices, updateDeployment } = require("../utils/compose-utils");
 
 class Enable extends Command {
   static strict = false;
@@ -12,7 +12,7 @@ If the deployment is running it will be updated after the docker-compose.yml is 
   ];
 
   async run() {
-    activateServices(this.parse().argv);
+    modifyServices({ enable: this.parse().argv });
     await updateDeployment();
   }
 }

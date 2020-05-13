@@ -15,6 +15,28 @@ async function dockerComposeExec(args, stdio) {
   });
 }
 
+function modifyServices({ enable = [], disable = [] }) {
+  const currentServices = getCurrent().services || [];
+  disable.forEach(serviceToDisable => {
+    delete currentServices[serviceToDisable];
+  });
+  const finalServices = Object.keys(currentServices).concat(enable);
+  updateComposeFile(finalServices);
+}
+
+function updateComposeFile(services) {
+  const base = getBase();
+  if (!base.services) base.services = {};
+
+  services.sort().forEach(serviceName => {
+    if (!base.services[serviceName]) {
+      base.services[serviceName] = getService(serviceName);
+    }
+  });
+
+  writeComposeFile(base);
+}
+
 async function updateDeployment(args = [], forceUpdate) {
   if (forceUpdate || (await areAnyServicesRunning())) {
     console.log(chalk.green("Updating deployment..."));
@@ -30,16 +52,6 @@ async function updateDeployment(args = [], forceUpdate) {
   return null;
 }
 
-function activateServices(requested) {
-  const base = getBase();
-  const services = { ...getCurrent().services, ...base.services };
-  requested.sort().forEach(serviceName => {
-    services[serviceName] = getService(serviceName);
-  });
-  base.services = services;
-  writeComposeFile(base);
-}
-
 async function areAnyServicesRunning() {
   const runningServices = await dockerComposeExec(
     ["ps", "--services", "--filter", "status=running"],
@@ -48,4 +60,4 @@ async function areAnyServicesRunning() {
   return runningServices.stdout;
 }
 
-module.exports = { dockerComposeExec, updateDeployment, activateServices };
+module.exports = { dockerComposeExec, modifyServices, updateDeployment };
