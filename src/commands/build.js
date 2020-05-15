@@ -1,5 +1,5 @@
 const DockerComposeCommand = require("../utils/docker-compose-command");
-const { updateDeployment, activateServices } = require("../utils/compose-utils");
+const { modifyServices, updateDeployment } = require("../utils/compose-utils");
 
 class Build extends DockerComposeCommand {
   static strict = false;
@@ -10,7 +10,7 @@ docker-compose.yml. Will attempt to update the deployment after building if depl
 is running.`;
 
   async run() {
-    activateServices(this.parse().argv);
+    await modifyServices({ enable: this.parse().argv });
     await this.dockerCompose("build");
     await updateDeployment();
   }
